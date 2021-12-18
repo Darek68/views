@@ -13,6 +13,7 @@
         <attr name="color8" format="color|reference" />
         <attr name="color9" format="color|reference" />
         <attr name="color10" format="color|reference" />
+
     </declare-styleable>
 </resources>
 

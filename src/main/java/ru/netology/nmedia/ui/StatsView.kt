@@ -110,17 +110,38 @@ class StatsView @JvmOverloads constructor(
         val point0 = -90F
         val minAngle = 0.00001F
         var firstColor = paint.color
-        val sum = data.sum()
+        var sum = data.sum()
         var data2 = mutableListOf<Float>()
-        data.map { data2.add(it / sum) }
+        var lastIndex = 0 // индекс последнего (серого) участка
+        var flg = false
+        var lastVal = 0F
+
+        if (sum < 1){
+            flg = true
+            lastVal = 1 - sum
+            data.map {
+                data2.add(it)
+                lastIndex += 1
+            }
+            data2.add(lastVal) // серый остаток до 100%
+            sum = 1F
+        } else {
+            data.map { data2.add(it / sum) }
+        }
 
         var startFrom = point0
         for ((index, datum) in data2.withIndex()) {
             val angle = 360F * datum
-            paint.color = colors.getOrNull(index) ?: randomColor()
+            if (flg && index == lastIndex){
+                paint.color = 0xFFc0c0c0.toInt()
+            }
+            else {
+                paint.color = colors.getOrNull(index) ?: randomColor()
+            }
             if (index == 0) {
                 firstColor = paint.color
             }
+
             canvas.drawArc(oval, startFrom, angle, false, paint)
             startFrom += angle
         }
@@ -128,7 +149,7 @@ class StatsView @JvmOverloads constructor(
         canvas.drawArc(oval, point0, minAngle, false, paint)
 
         canvas.drawText(
-            "%.2f%%".format(data2.sum() * 100),
+            "%.2f%%".format((data2.sum() - lastVal) * 100),
             center.x,
             center.y + textPaint.textSize / 4,
             textPaint,
