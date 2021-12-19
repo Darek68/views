@@ -26,6 +26,13 @@ class StatsView @JvmOverloads constructor(
     private var lineWidth = AndroidUtils.dp(context, 5F).toFloat()
     private var fontSize = AndroidUtils.dp(context, 40F).toFloat()
     private var colors = emptyList<Int>()
+    private var data2 = mutableListOf<Float>()
+    private var flg = false
+    private var lastIndex = 0 // индекс последнего (серого) участка
+    private var lastVal = 0F
+    private var sum = 0F
+
+
 
     init {
         context.withStyledAttributes(attrs, R.styleable.StatsView) {
@@ -92,6 +99,8 @@ class StatsView @JvmOverloads constructor(
         set(value) {
             field = value
             invalidate()
+            sum = data.sum()
+            getInitParam()
         }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -110,24 +119,6 @@ class StatsView @JvmOverloads constructor(
         val point0 = -90F
         val minAngle = 0.00001F
         var firstColor = paint.color
-        var sum = data.sum()
-        var data2 = mutableListOf<Float>()
-        var lastIndex = 0 // индекс последнего (серого) участка
-        var flg = false
-        var lastVal = 0F
-
-        if (sum < 1){
-            flg = true
-            lastVal = 1 - sum
-            data.map {
-                data2.add(it)
-                lastIndex += 1
-            }
-            data2.add(lastVal) // серый остаток до 100%
-            sum = 1F
-        } else {
-            data.map { data2.add(it / sum) }
-        }
 
         var startFrom = point0
         for ((index, datum) in data2.withIndex()) {
@@ -157,4 +148,21 @@ class StatsView @JvmOverloads constructor(
     }
 
     private fun randomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
+
+    private fun getInitParam() {
+
+        if (sum < 1){
+            flg = true
+            lastVal = 1 - sum
+            data.map {
+                data2.add(it)
+                lastIndex += 1
+            }
+            data2.add(lastVal) // серый остаток до 100%
+            sum = 1F
+        } else {
+            data.map { data2.add(it / sum) }
+        }
+
+    }
 }
