@@ -26,9 +26,9 @@ class StatsView @JvmOverloads constructor(
     private var lineWidth = AndroidUtils.dp(context, 5F).toFloat()
     private var fontSize = AndroidUtils.dp(context, 40F).toFloat()
     private var colors = emptyList<Int>()
-    private var data2 = mutableListOf<Float>()
-    private var flg = false
-    private var lastIndex = 0 // индекс последнего (серого) участка
+    private var weightedData = mutableListOf<Float>()
+    private var fullWeight = false
+   // private var lastIndex = 0 // индекс последнего (серого) участка
     private var lastVal = 0F
     private var sum = 0F
 
@@ -121,9 +121,9 @@ class StatsView @JvmOverloads constructor(
         var firstColor = paint.color
 
         var startFrom = point0
-        for ((index, datum) in data2.withIndex()) {
+        for ((index, datum) in weightedData.withIndex()) {
             val angle = 360F * datum
-            if (flg && index == lastIndex){
+            if (fullWeight && index == weightedData.size - 1){
                 paint.color = 0xFFc0c0c0.toInt()
             }
             else {
@@ -140,7 +140,7 @@ class StatsView @JvmOverloads constructor(
         canvas.drawArc(oval, point0, minAngle, false, paint)
 
         canvas.drawText(
-            "%.2f%%".format((data2.sum() - lastVal) * 100),
+            "%.2f%%".format((weightedData.sum() - lastVal) * 100),
             center.x,
             center.y + textPaint.textSize / 4,
             textPaint,
@@ -152,16 +152,15 @@ class StatsView @JvmOverloads constructor(
     private fun getInitParam() {
 
         if (sum < 1){
-            flg = true
+            fullWeight = true
             lastVal = 1 - sum
             data.map {
-                data2.add(it)
-                lastIndex += 1
+                weightedData.add(it)
             }
-            data2.add(lastVal) // серый остаток до 100%
+            weightedData.add(lastVal) // серый остаток до 100%
             sum = 1F
         } else {
-            data.map { data2.add(it / sum) }
+            data.map { weightedData.add(it / sum) }
         }
 
     }
